@@ -1,0 +1,120 @@
+{
+    "name": "app-name",
+    "type": "deployment",
+    "team": "app-team",
+    "stage": {
+        "replicaGroups": [
+            {
+                "name": "app-name",
+                "replicas": 1,
+                "env": [
+                    {
+                        "name": "SIMULATION_CACHE_TTL_SECONDS",
+                        "value": "10"
+                    },
+                    {
+                        "name": "DISABLE_SURGE",
+                        "value": "true"
+                    },
+                    {
+                        "name": "RUST_LOG",
+                        "value": "info"
+                    }
+                ],
+                "secrets": [],
+                "resources": {
+                    "requests": {
+                        "cpu": "500m",
+                        "memory": "1024Mi"
+                    },
+                    "limits": {
+                        "cpu": "1000m",
+                        "memory": "2048Mi"
+                    }
+                }
+            }
+        ],
+        "shared": {
+            "workflow": "critical",
+            "imagePath": "switchboardlabs/rust-crossbar:rc_25_09_04_17_45d",
+            "ports": [
+                8080
+            ],
+            "ingress": {
+                "enabled": true,
+                "subDomainCreated": true
+            },
+            "schedule": null,
+            "startupProbe": {
+                "httpGet": {
+                    "path": "/simulate/solana/mainnet/EAsoLo2uSvBDx3a5grqzfqBMg5RqpJVHRtXmjsFEc4LL?includeReceipts=true",
+                    "port": 8080
+                },
+                "initialDelaySeconds": 5,
+                "periodSeconds": 5,
+                "failureThreshold": 30
+            }
+        }
+    },
+    "prod": {
+        "replicaGroups": [
+            {
+                "name": "app-name",
+                "replicas": 1,
+                "autoscaling": {
+                    "enabled": true,
+                    "minReplicas": 1,
+                    "maxReplicas": 4,
+                    "targetCPUUtilizationPercentage": 80,
+                    "targetMemoryUtilizationPercentage": 80
+                },
+                "env": [
+                    {
+                        "name": "SIMULATION_CACHE_TTL_SECONDS",
+                        "value": "10"
+                    },
+                    {
+                        "name": "DISABLE_SURGE",
+                        "value": "true"
+                    },
+                    {
+                        "name": "RUST_LOG",
+                        "value": "info"
+                    }
+                ],
+                "secrets": [],
+                "resources": {
+                    "requests": {
+                        "cpu": "500m",
+                        "memory": "1024Mi"
+                    },
+                    "limits": {
+                        "cpu": "1000m",
+                        "memory": "2048Mi"
+                    }
+                }
+            }
+        ],
+        "shared": {
+            "workflow": "critical",
+            "imagePath": "switchboardlabs/rust-crossbar:rc_25_09_04_17_45d",
+            "ports": [
+                8080
+            ],
+            "ingress": {
+                "enabled": true,
+                "subDomainCreated": true
+            },
+            "schedule": null,
+            "startupProbe": {
+                "httpGet": {
+                    "path": "/simulate/solana/mainnet/EAsoLo2uSvBDx3a5grqzfqBMg5RqpJVHRtXmjsFEc4LL?includeReceipts=true",
+                    "port": 8080
+                },
+                "initialDelaySeconds": 5,
+                "periodSeconds": 5,
+                "failureThreshold": 30
+            }
+        }
+    }
+}

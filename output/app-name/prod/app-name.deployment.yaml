@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-name
+  namespace: default
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: app-name
+      replicaGroup: app-name
+  template:
+    metadata:
+      labels:
+        app: app-name
+        replicaGroup: app-name
+        team: app-team
+      annotations:
+        rollout-trigger: '2025-09-15T01:37:53.136Z'
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: '9000'
+        prometheus.io/path: /metrics
+    spec:
+      containers:
+        - name: app-name
+          image: switchboardlabs/rust-crossbar:rc_25_09_04_17_45d
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1024Mi
+            limits:
+              cpu: 1000m
+              memory: 2048Mi
+          env:
+            - name: SIMULATION_CACHE_TTL_SECONDS
+              value: '10'
+            - name: DISABLE_SURGE
+              value: 'true'
+            - name: RUST_LOG
+              value: info
+          ports:
+            - containerPort: 8080
+          startupProbe:
+            httpGet:
+              path: >-
+                /simulate/solana/mainnet/EAsoLo2uSvBDx3a5grqzfqBMg5RqpJVHRtXmjsFEc4LL?includeReceipts=true
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+      tolerations:
+        - key: workload-type
+          operator: Equal
+          value: critical
+          effect: NoSchedule
+      nodeSelector:
+        node-pool: critical
+      restartPolicy: Always

@@ -12,8 +12,9 @@ program
     .argument('<config-dir>', 'directory containing JSON configuration files')
     .option('-a, --app <name>', 'specific app name to build (builds all if not specified)')
     .option('-o, --out <directory>', 'output directory for generated manifests', 'build')
-    .option('-s, --secrets-dir <directory>', 'directory containing secrets files', 'secrets')
-    .action(async (configDir: string, options: { app?: string; out: string; secretsDir: string }) => {
+    .option('-s, --secrets-dir <directory>', 'directory containing secrets files (optional, no secrets used if not provided)')
+    .option('-d, --ingress-domain <domain>', 'domain for ingress hosts (default: mrgn.app)', 'mrgn.app')
+    .action(async (configDir: string, options: { app?: string; out: string; secretsDir?: string; ingressDomain: string }) => {
         try {
             console.log(`🚀 Processing config directory: ${configDir}`);
             if (options.app) {
@@ -22,7 +23,12 @@ program
                 console.log(`📦 Building all apps in directory`);
             }
             console.log(`📁 Output directory: ${options.out}`);
-            console.log(`🔐 Secrets directory: ${options.secretsDir}`);
+            if (options.secretsDir) {
+                console.log(`🔐 Secrets directory: ${options.secretsDir}`);
+            } else {
+                console.log(`🔐 Secrets: Not using secrets (no secrets directory provided)`);
+            }
+            console.log(`🌐 Ingress domain: ${options.ingressDomain}`);
 
             // Validate inputs
             validateInputs(configDir, options.app, options.out, options.secretsDir);
@@ -32,7 +38,8 @@ program
                 configPath: configDir,
                 appName: options.app,
                 buildDir: options.out,
-                secretsDir: options.secretsDir
+                secretsDir: options.secretsDir,
+                ingressDomain: options.ingressDomain
             });
 
             console.log(`✅ Successfully generated Kubernetes manifests in: ${options.out}`);
@@ -43,7 +50,7 @@ program
         }
     });
 
-function validateInputs(configDir: string, appName: string | undefined, outputDir: string, secretsDir: string) {
+function validateInputs(configDir: string, appName: string | undefined, outputDir: string, secretsDir: string | undefined) {
     // Check if config directory exists
     if (!fs.existsSync(configDir)) {
         console.error(`❌ Error: Config directory "${configDir}" does not exist`);
@@ -78,8 +85,8 @@ function validateInputs(configDir: string, appName: string | undefined, outputDi
         console.log(`📁 Created output directory: ${outputDir}`);
     }
 
-    // Check if secrets directory exists
-    if (!fs.existsSync(secretsDir)) {
+    // Check if secrets directory exists (only if provided)
+    if (secretsDir && !fs.existsSync(secretsDir)) {
         console.error(`❌ Error: Secrets directory "${secretsDir}" does not exist`);
         console.log(`💡 Make sure the secrets directory contains stage.secret.json and prod.secret.json files`);
         process.exit(1);
