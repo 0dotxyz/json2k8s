@@ -6,7 +6,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Kubernetes](https://img.shields.io/badge/Orchestration-Kubernetes-blue)](https://kubernetes.io/)
 
-A powerful CLI tool to generate Kubernetes manifests from JSON configuration files. Transform your application configurations into production-ready Kubernetes YAML files with ease.
+An opinionated CLI tool to generate Kubernetes manifests from JSON configuration files. This tool is designed with specific conventions and limitations to provide a streamlined experience for generating production-ready Kubernetes YAML files.
+
+**Current Limitations:**
+- Only supports two hardcoded environments: `stage` and `prod`
+- Secrets are handled exclusively using SOPS encryption
+- Configuration format follows specific opinionated patterns
 
 ## 🚀 Features
 
@@ -17,6 +22,27 @@ A powerful CLI tool to generate Kubernetes manifests from JSON configuration fil
 - **CLI Interface**: Easy-to-use command-line interface with helpful options
 
 ## 📦 Installation
+
+### Prerequisites
+
+Before using json2k8s, you need to install SOPS for secret decryption:
+
+```bash
+# macOS
+brew install sops
+
+# Linux
+curl -LO https://github.com/mozilla/sops/releases/latest/download/sops-v3.8.1.linux
+sudo mv sops-v3.8.1.linux /usr/local/bin/sops
+sudo chmod +x /usr/local/bin/sops
+
+# Or using package managers
+# Ubuntu/Debian
+sudo apt-get install sops
+
+# Arch Linux
+sudo pacman -S sops
+```
 
 ### Global Installation (Recommended)
 
@@ -43,23 +69,15 @@ pnpm add json2k8s
 
 ## 🎯 Usage
 
-### Basic Usage
-
-```bash
-json2k8s <config-dir>
-```
-
-### Advanced Usage
-
 ```bash
 json2k8s <config-dir> [options]
 ```
 
-### Options
+For all available options, run:
 
-- `-a, --app <name>` - Build a specific app (builds all apps if not specified)
-- `-o, --out <directory>` - Output directory for generated manifests (default: `build`)
-- `-s, --secrets-dir <directory>` - Directory containing secrets files (default: `secrets`)
+```bash
+json2k8s --help
+```
 
 ### Examples
 
@@ -77,79 +95,6 @@ json2k8s ./configs --out ./k8s-manifests --secrets-dir ./env-secrets
 json2k8s ./configs -a my-app -o ./output -s ./secrets
 ```
 
-## 📁 Project Structure
-
-Your project should be organized like this:
-
-```
-project/
-├── configs/                 # JSON configuration files
-│   ├── app1.json
-│   ├── app2.json
-│   └── ...
-├── secrets/                 # Environment-specific secrets
-│   ├── stage.secret.json
-│   └── prod.secret.json
-└── build/                   # Generated manifests (default output)
-    ├── app1/
-    │   ├── stage/
-    │   └── prod/
-    └── app2/
-        ├── stage/
-        └── prod/
-```
-
-## 🔧 Configuration
-
-### JSON Configuration Format
-
-Each app configuration file should be a JSON file with the following structure:
-
-```json
-{
-  "name": "my-app",
-  "image": "my-app:latest",
-  "replicas": 3,
-  "ports": [
-    {
-      "containerPort": 3000,
-      "servicePort": 80
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "DATABASE_URL": "postgresql://..."
-  }
-}
-```
-
-### Secrets Format
-
-Environment-specific secrets should be in separate JSON files:
-
-**stage.secret.json:**
-```json
-{
-  "DATABASE_URL": "postgresql://stage-db:5432/myapp",
-  "API_KEY": "stage-api-key"
-}
-```
-
-**prod.secret.json:**
-```json
-{
-  "DATABASE_URL": "postgresql://prod-db:5432/myapp",
-  "API_KEY": "prod-api-key"
-}
-```
-
-## 🏗️ Generated Output
-
-The tool generates the following Kubernetes manifests for each app and environment:
-
-- **Deployment**: Application deployment configuration
-- **Service**: Service configuration for networking
-- **Secret**: Environment-specific secrets
 
 ## 🤝 Contributing
 

@@ -862,7 +862,7 @@ interface BuildOptions {
     configPath: string;
     appName?: string; // undefined means build all apps
     buildDir: string;
-    secretsDir: string;
+    secretsDir?: string; // optional secrets directory, if not provided no secrets will be used
     secretIntegrator?: SecretIntegrator; // optional secret integrator, defaults to SOPS
 }
 
@@ -882,9 +882,9 @@ export async function build(options: BuildOptions) {
     if (fs.existsSync(buildDir)) fs.rmSync(buildDir, { recursive: true, force: true });
     fs.mkdirSync(buildDir, { recursive: true });
 
-    // Decrypt secrets once at the start
-    const stageSecrets = loadDecryptedSecrets('stage', secretsDir, secretIntegrator);
-    const prodSecrets = loadDecryptedSecrets('prod', secretsDir, secretIntegrator);
+    // Decrypt secrets once at the start (only if secrets directory is provided)
+    const stageSecrets = secretsDir ? loadDecryptedSecrets('stage', secretsDir, secretIntegrator) : {};
+    const prodSecrets = secretsDir ? loadDecryptedSecrets('prod', secretsDir, secretIntegrator) : {};
 
     for (const file of appsToBuild) {
         const raw = fs.readFileSync(path.join(configPath, file), 'utf8');
