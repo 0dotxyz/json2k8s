@@ -13,7 +13,8 @@ program
     .option('-a, --app <name>', 'specific app name to build (builds all if not specified)')
     .option('-o, --out <directory>', 'output directory for generated manifests', 'build')
     .option('-s, --secrets-dir <directory>', 'directory containing secrets files (optional, no secrets used if not provided)')
-    .action(async (configDir: string, options: { app?: string; out: string; secretsDir?: string }) => {
+    .option('-d, --ingress-domain <domain>', 'domain for ingress hosts (default: mrgn.app)', 'mrgn.app')
+    .action(async (configDir: string, options: { app?: string; out: string; secretsDir?: string; ingressDomain: string }) => {
         try {
             console.log(`🚀 Processing config directory: ${configDir}`);
             if (options.app) {
@@ -27,6 +28,7 @@ program
             } else {
                 console.log(`🔐 Secrets: Not using secrets (no secrets directory provided)`);
             }
+            console.log(`🌐 Ingress domain: ${options.ingressDomain}`);
 
             // Validate inputs
             validateInputs(configDir, options.app, options.out, options.secretsDir);
@@ -36,7 +38,8 @@ program
                 configPath: configDir,
                 appName: options.app,
                 buildDir: options.out,
-                secretsDir: options.secretsDir
+                secretsDir: options.secretsDir,
+                ingressDomain: options.ingressDomain
             });
 
             console.log(`✅ Successfully generated Kubernetes manifests in: ${options.out}`);

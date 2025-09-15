@@ -10,11 +10,11 @@ metadata:
 spec:
   tls:
     - hosts:
-        - app-name.stage.mrgn.app
-        - stage.mrgn.app
+        - app-name.stage.example.com
+        - stage.example.com
       secretName: app-name-tls
   rules:
-    - host: stage.mrgn.app
+    - host: stage.example.com
       http:
         paths:
           - path: /app-name(/|$)(.*)

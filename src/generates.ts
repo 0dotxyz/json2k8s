@@ -520,12 +520,12 @@ function createService(appName: string, replicaGroupName: string, ports: number[
     };
 }
 
-function createIngress(appName: string, env: string, shared: any, isSubDomain: boolean, isSubdomainCreated: boolean) {
-    let baseHost = [`${env}.mrgn.app`];
-    let subHost = [`${appName}.${env}.mrgn.app`];
+function createIngress(appName: string, env: string, shared: any, isSubDomain: boolean, isSubdomainCreated: boolean, ingressDomain: string) {
+    let baseHost = [`${env}.${ingressDomain}`];
+    let subHost = [`${appName}.${env}.${ingressDomain}`];
     let baseRule = [
         {
-            host: `${env}.mrgn.app`,
+            host: `${env}.${ingressDomain}`,
             http: {
                 paths: [{
                     path: `/${appName}(/|$)(.*)`,
@@ -542,7 +542,7 @@ function createIngress(appName: string, env: string, shared: any, isSubDomain: b
     ]
     let subRules: any[] = [
         {
-            host: `${appName}.${env}.mrgn.app`,
+            host: `${appName}.${env}.${ingressDomain}`,
             http: {
                 paths: [{
                     path: `/`,
@@ -558,9 +558,9 @@ function createIngress(appName: string, env: string, shared: any, isSubDomain: b
         }
     ];
     if (env === 'prod') {
-        subHost.push(`${appName}.mrgn.app`);
+        subHost.push(`${appName}.${ingressDomain}`);
         subRules.push({
-            host: `${appName}.mrgn.app`,
+            host: `${appName}.${ingressDomain}`,
             http: {
                 paths: [{
                     path: `/`,
@@ -650,7 +650,7 @@ function createHPA(appName: string, group: any, env: string) {
     };
 }
 
-function generateAllDeployments(config: z.infer<typeof AppSchema> & { type: 'deployment' }, env: string, buildDir: string, secrets: Record<string, string>) {
+function generateAllDeployments(config: z.infer<typeof AppSchema> & { type: 'deployment' }, env: string, buildDir: string, secrets: Record<string, string>, ingressDomain: string) {
     type AppConfig = z.infer<typeof AppSchema>;
     type EnvKey = keyof Pick<AppConfig, 'stage' | 'prod'>;
     const envConfig = config[env as EnvKey];
@@ -736,11 +736,11 @@ function generateAllDeployments(config: z.infer<typeof AppSchema> & { type: 'dep
     fs.writeFileSync(path.join(outDir, `service.yaml`), yaml.dump(service), 'utf8');
 
     if (shared.ingress?.enabled) {
-        const ingress = createIngress(config.name, env, shared, false, shared.ingress.subDomainCreated);
+        const ingress = createIngress(config.name, env, shared, false, shared.ingress.subDomainCreated, ingressDomain);
         fs.writeFileSync(path.join(outDir, `path.ingress.yaml`), yaml.dump(ingress), 'utf8');
 
         if (shared.ingress.subDomainCreated) {
-            const cnameIngress = createIngress(config.name, env, shared, true, shared.ingress.subDomainCreated);
+            const cnameIngress = createIngress(config.name, env, shared, true, shared.ingress.subDomainCreated, ingressDomain);
             fs.writeFileSync(path.join(outDir, `cname.ingress.yaml`), yaml.dump(cnameIngress), 'utf8');
         }
     }
@@ -864,10 +864,11 @@ interface BuildOptions {
     buildDir: string;
     secretsDir?: string; // optional secrets directory, if not provided no secrets will be used
     secretIntegrator?: SecretIntegrator; // optional secret integrator, defaults to SOPS
+    ingressDomain?: string; // optional ingress domain, defaults to mrgn.app
 }
 
 export async function build(options: BuildOptions) {
-    const { configPath, appName, buildDir, secretsDir, secretIntegrator = defaultSecretIntegrator } = options;
+    const { configPath, appName, buildDir, secretsDir, secretIntegrator = defaultSecretIntegrator, ingressDomain = 'mrgn.app' } = options;
 
     let appsToBuild: string[];
 
@@ -899,10 +900,10 @@ export async function build(options: BuildOptions) {
         // Generate for all defined environments
         if (config.type === 'deployment') {
             if (config.stage) {
-                generateAllDeployments(config, 'stage', buildDir, stageSecrets);
+                generateAllDeployments(config, 'stage', buildDir, stageSecrets, ingressDomain);
             }
             if (config.prod) {
-                generateAllDeployments(config, 'prod', buildDir, prodSecrets);
+                generateAllDeployments(config, 'prod', buildDir, prodSecrets, ingressDomain);
             }
         } else if (config.type === 'cronjob') {
             if (config.stage) {

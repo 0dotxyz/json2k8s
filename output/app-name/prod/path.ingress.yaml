@@ -10,12 +10,12 @@ metadata:
 spec:
   tls:
     - hosts:
-        - app-name.prod.mrgn.app
-        - app-name.mrgn.app
-        - prod.mrgn.app
+        - app-name.prod.example.com
+        - app-name.example.com
+        - prod.example.com
       secretName: app-name-tls
   rules:
-    - host: prod.mrgn.app
+    - host: prod.example.com
       http:
         paths:
           - path: /app-name(/|$)(.*)

@@ -21,7 +21,7 @@ spec:
         replicaGroup: app-name
         team: app-team
       annotations:
-        rollout-trigger: '2025-09-15T01:27:59.687Z'
+        rollout-trigger: '2025-09-15T01:37:53.136Z'
         prometheus.io/scrape: 'true'
         prometheus.io/port: '9000'
         prometheus.io/path: /metrics
