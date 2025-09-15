@@ -1,0 +1,53 @@
+{
+  "name": "json2k8s",
+  "version": "0.1.0",
+  "description": "CLI to generate Kubernetes manifests from JSON",
+  "type": "module",
+  "bin": {
+    "json2k8s": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "pnpm build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "keywords": [
+    "kubernetes",
+    "k8s",
+    "yaml",
+    "manifests",
+    "json",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0dotxyz/json2k8s.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0dotxyz/json2k8s/issues"
+  },
+  "homepage": "https://github.com/0dotxyz/json2k8s#readme",
+  "author": "Abdul Rabbani <abdul@0.xyz>",
+  "dependencies": {
+    "commander": "^14.0.1",
+    "js-yaml": "^4.1.0",
+    "path": "^0.12.7",
+    "zod": "^4.1.8"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^18.19.86",
+    "ts-node": "^10.9.2",
+    "tsup": "^8.5.0",
+    "typescript": "^5.0.0"
+  }
+}
