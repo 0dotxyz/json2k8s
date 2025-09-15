@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import { execSync } from 'child_process';
 import { z } from 'zod';
 import { fileURLToPath } from 'url';
+import { SecretIntegrator, defaultSecretIntegrator } from './secret-integrators';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -153,15 +153,8 @@ function trimExtension(filename: string): string {
     return filename.replace(/\.[^/.]+$/, '');
 }
 
-function loadDecryptedSecrets(env: 'stage' | 'prod', secretsDir: string = 'secrets'): Record<string, string> {
-    const secretsPath = path.resolve(secretsDir, `${env}.secret.json`);
-    try {
-        const stdout = execSync(`sops -d ${secretsPath}`, { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'inherit'] }); // ✅ replaced execa
-        return JSON.parse(stdout);
-    } catch (err) {
-        console.error(`❌ Failed to decrypt secrets for ${env}:`, err);
-        process.exit(1);
-    }
+function loadDecryptedSecrets(env: 'stage' | 'prod', secretsDir: string = 'secrets', integrator: SecretIntegrator = defaultSecretIntegrator): Record<string, string> {
+    return integrator.decryptSecrets(env, secretsDir);
 }
 
 function validateUniqueReplicaGroupNames(envConfig: z.infer<typeof EnvSchema>, env: string, appName: string) {
@@ -870,10 +863,11 @@ interface BuildOptions {
     appName?: string; // undefined means build all apps
     buildDir: string;
     secretsDir: string;
+    secretIntegrator?: SecretIntegrator; // optional secret integrator, defaults to SOPS
 }
 
 export async function build(options: BuildOptions) {
-    const { configPath, appName, buildDir, secretsDir } = options;
+    const { configPath, appName, buildDir, secretsDir, secretIntegrator = defaultSecretIntegrator } = options;
 
     let appsToBuild: string[];
 
@@ -889,8 +883,8 @@ export async function build(options: BuildOptions) {
     fs.mkdirSync(buildDir, { recursive: true });
 
     // Decrypt secrets once at the start
-    const stageSecrets = loadDecryptedSecrets('stage', secretsDir);
-    const prodSecrets = loadDecryptedSecrets('prod', secretsDir);
+    const stageSecrets = loadDecryptedSecrets('stage', secretsDir, secretIntegrator);
+    const prodSecrets = loadDecryptedSecrets('prod', secretsDir, secretIntegrator);
 
     for (const file of appsToBuild) {
         const raw = fs.readFileSync(path.join(configPath, file), 'utf8');
