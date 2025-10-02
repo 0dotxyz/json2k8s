@@ -9,6 +9,7 @@
 An opinionated CLI tool to generate Kubernetes manifests from JSON configuration files. This tool is designed with specific conventions and limitations to provide a streamlined experience for generating production-ready Kubernetes YAML files.
 
 **Current Limitations:**
+- **Experimental for the time being**
 - Only supports two hardcoded environments: `stage` and `prod`
 - Secrets are handled exclusively using SOPS encryption
 - Configuration format follows specific opinionated patterns
